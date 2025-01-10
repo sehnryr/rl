@@ -14,8 +14,8 @@ use crate::{traits::ToTensor, util::summary_from_keys};
 pub trait EnvState: Into<TensorData> {}
 impl<T: Into<TensorData>> EnvState for T {}
 
-pub trait EnvAction: Into<TensorData> {}
-impl<T: Into<TensorData>> EnvAction for T {}
+pub trait EnvAction: Into<TensorData> + From<isize> {}
+impl<T: Into<TensorData> + From<isize>> EnvAction for T {}
 
 impl<B, T> ToTensor<B, 2, Float> for Vec<T>
 where
@@ -89,7 +89,7 @@ pub trait Environment {
     ///
     /// ### Trait bounds
     /// - `Clone` - When sampling batches of experiences, cloning is necessary
-    type State: Clone + Debug;
+    type State: Clone + Debug + EnvState;
 
     /// A representation of an action that an agent can take to affect the environment
     ///
@@ -97,7 +97,7 @@ pub trait Environment {
     ///
     /// ### Trait bounds
     /// - `Clone` - When sampling batches of experiences, cloning is necessary
-    type Action: Clone + Debug;
+    type Action: Clone + Debug + EnvAction;
 
     /// Update the environment in response to a an action taken by an agent, producing a new state and associated reward
     ///

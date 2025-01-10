@@ -31,3 +31,6 @@ pub mod viz;
 pub mod gym;
 
 mod util;
+
+// Burn re-export
+pub use burn;

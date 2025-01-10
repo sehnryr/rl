@@ -3,7 +3,7 @@ use burn::{
     module::AutodiffModule,
     optim::{AdamWConfig, GradientsParams, Optimizer},
     prelude::*,
-    tensor::backend::AutodiffBackend,
+    tensor::{backend::AutodiffBackend, cast::ToElement},
 };
 use nn::loss::{MseLoss, Reduction};
 
@@ -149,14 +149,13 @@ where
 
 impl<B, M, E, DEC, const D: usize> DQNAgent<B, M, E, DEC, D>
 where
-    B: AutodiffBackend<FloatElem = f32, IntElem = i32>,
+    B: AutodiffBackend,
     M: DQNModel<B, D>,
     E: Environment,
     DEC: Decay,
     // O: Optimizer<M, B>,
     Vec<E::State>: ToTensor<B, D, Float>,
     Vec<E::Action>: ToTensor<B, 2, Int>,
-    E::Action: From<usize>,
 {
     /// Initialize a new `DQNAgent`
     ///
@@ -210,7 +209,7 @@ where
                     .forward(input)
                     .argmax(1)
                     .into_scalar();
-                E::Action::from(output.try_into().unwrap())
+                E::Action::from(output.to_isize())
             }
         }
     }

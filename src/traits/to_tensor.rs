@@ -43,7 +43,7 @@ impl<B, E, K> ToTensor<B, 1, K> for Vec<E>
 where
     B: Backend,
     E: Element,
-    K: BasicOps<B, Elem = E>,
+    K: BasicOps<B>,
 {
     fn to_tensor(self) -> Tensor<B, 1, K> {
         let len = self.len();
