@@ -51,23 +51,6 @@ where
     }
 }
 
-impl<B, E, K, const A: usize> ToTensor<B, 2, K> for Vec<[E; A]>
-where
-    B: Backend,
-    E: Element,
-    K: BasicOps<B, Elem = E>,
-{
-    fn to_tensor(self) -> Tensor<B, 2, K> {
-        let len = self.len();
-        let data = TensorData::new(
-            self.into_iter().flatten().collect::<Vec<_>>(),
-            vec![len * A],
-        );
-        let tensor: Tensor<B, 1, K> = Tensor::from(data);
-        tensor.reshape([-1, A as i32])
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use burn::backend::NdArray as B;

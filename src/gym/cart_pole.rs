@@ -31,15 +31,9 @@ impl From<usize> for CPAction {
     }
 }
 
-impl<B: Backend<IntElem = i32>> ToTensor<B, 2, Int> for Vec<CPAction> {
-    fn to_tensor(self) -> Tensor<B, 2, Int> {
-        let len = self.len();
-        let data = TensorData::new(
-            self.into_iter().map(|x| x as i32).collect::<Vec<_>>(),
-            vec![len],
-        );
-        let tensor: Tensor<B, 1, Int> = Tensor::from(data);
-        tensor.unsqueeze_dim(1)
+impl Into<TensorData> for CPAction {
+    fn into(self: Self) -> TensorData {
+        TensorData::new(vec![self as i32], vec![1])
     }
 }
 

@@ -4,15 +4,79 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use burn::tensor::{Data, Element};
+use burn::{
+    prelude::Backend,
+    tensor::{Float, Int, Tensor, TensorData},
+};
 
-use crate::util::summary_from_keys;
+use crate::{traits::ToTensor, util::summary_from_keys};
 
-// pub trait EnvState {}
-// impl<E: Element, const A: usize> EnvState for [E; A] {}
+pub trait EnvState: Into<TensorData> {}
+impl<T: Into<TensorData>> EnvState for T {}
 
-// pub trait EnvAction: From<usize> {}
-// impl<T: From<usize>> EnvAction for T {}
+pub trait EnvAction: Into<TensorData> {}
+impl<T: Into<TensorData>> EnvAction for T {}
+
+impl<B, T> ToTensor<B, 2, Float> for Vec<T>
+where
+    B: Backend,
+    T: EnvState,
+{
+    fn to_tensor(self) -> Tensor<B, 2, Float> {
+        let inner_data = self.into_iter().map(|x| x.into()).collect::<Vec<_>>();
+
+        let outer_dim = inner_data.len();
+        let inner_dim = inner_data
+            .get(0)
+            .map(TensorData::num_elements)
+            .expect("cannot convert data with shape 0");
+
+        let dtype = inner_data.get(0).map(|x| x.dtype).unwrap();
+        let len = inner_data.get(0).map(|x| x.bytes.len()).unwrap();
+
+        let mut bytes = Vec::with_capacity(outer_dim * len);
+        for mut elem in inner_data {
+            bytes.append(&mut elem.bytes);
+        }
+
+        Tensor::from(TensorData {
+            bytes,
+            shape: vec![outer_dim, inner_dim],
+            dtype,
+        })
+    }
+}
+
+impl<B, T> ToTensor<B, 2, Int> for Vec<T>
+where
+    B: Backend,
+    T: EnvAction,
+{
+    fn to_tensor(self) -> Tensor<B, 2, Int> {
+        let inner_data = self.into_iter().map(|x| x.into()).collect::<Vec<_>>();
+
+        let outer_dim = inner_data.len();
+        let inner_dim = inner_data
+            .get(0)
+            .map(TensorData::num_elements)
+            .expect("cannot convert data with shape 0");
+
+        let dtype = inner_data.get(0).map(|x| x.dtype).unwrap();
+        let len = inner_data.get(0).map(|x| x.bytes.len()).unwrap();
+
+        let mut bytes = Vec::with_capacity(outer_dim * len);
+        for mut elem in inner_data {
+            bytes.append(&mut elem.bytes);
+        }
+
+        let tensor: Tensor<B, 1, Int> = Tensor::from(TensorData {
+            bytes,
+            shape: vec![outer_dim * inner_dim],
+            dtype,
+        });
+        tensor.unsqueeze_dim(1)
+    }
+}
 
 /// Represents a Markov decision process, defining the dynamics of an environment
 /// in which an agent can operate.
