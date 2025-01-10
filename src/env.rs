@@ -4,7 +4,15 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use burn::tensor::{Data, Element};
+
 use crate::util::summary_from_keys;
+
+// pub trait EnvState {}
+// impl<E: Element, const A: usize> EnvState for [E; A] {}
+
+// pub trait EnvAction: From<usize> {}
+// impl<T: From<usize>> EnvAction for T {}
 
 /// Represents a Markov decision process, defining the dynamics of an environment
 /// in which an agent can operate.

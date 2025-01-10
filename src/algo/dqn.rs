@@ -202,7 +202,7 @@ where
         match self.exploration.choose(self.total_steps) {
             Choice::Explore => env.random_action(),
             Choice::Exploit => {
-                let input = vec![state].to_tensor(self.device);
+                let input = vec![state].to_tensor();
                 let output = self
                     .policy_net
                     .as_ref()
@@ -232,19 +232,19 @@ where
             .iter()
             .map(Option::is_some)
             .collect::<Vec<_>>()
-            .to_tensor(self.device)
+            .to_tensor()
             .unsqueeze_dim(1);
 
         // Tensor conversions
-        let states = batch.states.to_tensor(self.device);
-        let actions = batch.actions.to_tensor(self.device);
+        let states = batch.states.to_tensor();
+        let actions = batch.actions.to_tensor();
         let next_states = batch
             .next_states
             .into_iter()
             .flatten()
             .collect::<Vec<_>>()
-            .to_tensor(self.device);
-        let rewards = batch.rewards.to_tensor(self.device).unsqueeze_dim(1);
+            .to_tensor();
+        let rewards = batch.rewards.to_tensor().unsqueeze_dim(1);
 
         let policy_net = self.policy_net.take().unwrap();
         let target_net = self.target_net.take().unwrap();
@@ -291,19 +291,19 @@ where
             .iter()
             .map(Option::is_some)
             .collect::<Vec<_>>()
-            .to_tensor(self.device)
+            .to_tensor()
             .unsqueeze_dim(1);
 
         // Tensor conversions
-        let states = batch.states.to_tensor(self.device);
-        let actions = batch.actions.to_tensor(self.device);
+        let states = batch.states.to_tensor();
+        let actions = batch.actions.to_tensor();
         let next_states = batch
             .next_states
             .into_iter()
             .flatten()
             .collect::<Vec<_>>()
-            .to_tensor(self.device);
-        let rewards = batch.rewards.to_tensor(self.device).unsqueeze_dim(1);
+            .to_tensor();
+        let rewards = batch.rewards.to_tensor().unsqueeze_dim(1);
 
         let policy_net = self.policy_net.take().unwrap();
         let target_net = self.target_net.take().unwrap();
@@ -323,11 +323,11 @@ where
         let tde: Tensor<B, 1> = (discounted_expected_return - q_values).squeeze(1);
 
         // Update priorities of sampled experiences
-        let td_errors = tde.to_data().value;
-        memory.update_priorities(&indices, &td_errors);
+        let td_errors = tde.to_data();
+        memory.update_priorities(&indices, td_errors.as_slice().unwrap());
 
         // Apply importance sampling weights from prioritized memory replay and compute mean squared weighted TD error
-        let weights = weights.to_tensor(self.device);
+        let weights = weights.to_tensor();
         let loss = (weights * tde.powf_scalar(2.0)).mean();
 
         // Perform backpropagation on policy net
