@@ -32,18 +32,18 @@ where
             .expect("cannot convert data with shape 0");
 
         let dtype = inner_data.get(0).map(|x| x.dtype).unwrap();
-        let len = inner_data.get(0).map(|x| x.bytes.len()).unwrap();
+        let len = inner_data.get(0).map(|x| x.as_bytes().len()).unwrap();
 
         let mut bytes = Vec::with_capacity(outer_dim * len);
-        for mut elem in inner_data {
-            bytes.append(&mut elem.bytes);
+        for elem in inner_data {
+            bytes.append(&mut elem.into_bytes().to_vec());
         }
 
-        Tensor::from(TensorData {
+        Tensor::from(TensorData::from_bytes(
             bytes,
-            shape: vec![outer_dim, inner_dim],
+            vec![outer_dim, inner_dim],
             dtype,
-        })
+        ))
     }
 }
 
@@ -62,18 +62,18 @@ where
             .expect("cannot convert data with shape 0");
 
         let dtype = inner_data.get(0).map(|x| x.dtype).unwrap();
-        let len = inner_data.get(0).map(|x| x.bytes.len()).unwrap();
+        let len = inner_data.get(0).map(|x| x.as_bytes().len()).unwrap();
 
         let mut bytes = Vec::with_capacity(outer_dim * len);
-        for mut elem in inner_data {
-            bytes.append(&mut elem.bytes);
+        for elem in inner_data {
+            bytes.append(&mut elem.into_bytes().to_vec());
         }
 
-        let tensor: Tensor<B, 1, Int> = Tensor::from(TensorData {
+        let tensor: Tensor<B, 1, Int> = Tensor::from(TensorData::from_bytes(
             bytes,
-            shape: vec![outer_dim * inner_dim],
+            vec![outer_dim * inner_dim],
             dtype,
-        });
+        ));
         tensor.unsqueeze_dim(1)
     }
 }
